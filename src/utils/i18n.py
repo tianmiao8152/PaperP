@@ -11,10 +11,6 @@ class I18N:
         "app_starting": {Language.ENGLISH: "Application starting...", Language.CHINESE: "正在启动应用..."},
         "app_terminating": {Language.ENGLISH: "Application terminating normally", Language.CHINESE: "应用正常关闭"},
         "paper": {Language.ENGLISH: "PAPER - Pen Adb Password Easily Reset", Language.CHINESE: "PAPER - 一键重置词典笔 ADB 密码"},
-        "arg_interface": {Language.ENGLISH: "Network interface IP to listen on (Hotspot IP)", Language.CHINESE: "监听的网络接口 IP (热点 IP)"},
-        "arg_image": {Language.ENGLISH: "Firmware image filename", Language.CHINESE: "固件镜像文件名"},
-        "arg_lang": {Language.ENGLISH: "Language (en/cn)", Language.CHINESE: "语言 (en/cn)"},
-        "arg_debug": {Language.ENGLISH: "Enable debug mode with verbose output", Language.CHINESE: "启用调试模式，输出详细信息"},
         "press_enter_exit": {Language.ENGLISH: "Press Enter to exit...", Language.CHINESE: "按回车键退出..."},
         "unknown_error": {Language.ENGLISH: "An error occurred: {}", Language.CHINESE: "发生错误: {}"},
         
@@ -22,6 +18,8 @@ class I18N:
         "confirm_prefix": {Language.ENGLISH: "[CONFIRM]", Language.CHINESE: "[确认]"},
         "confirm_suffix": {Language.ENGLISH: "[y/N]", Language.CHINESE: "[是(y)/否(N)]"},
         "input_prefix": {Language.ENGLISH: "[INPUT]", Language.CHINESE: "[输入]"},
+        "dialog_input_title": {Language.ENGLISH: "Input", Language.CHINESE: "输入"},
+        "dialog_confirm_title": {Language.ENGLISH: "Confirm", Language.CHINESE: "确认"},
         "debug_prefix": {Language.ENGLISH: "[DEBUG]", Language.CHINESE: "[调试]"},
         "info_prefix": {Language.ENGLISH: "[INFO]", Language.CHINESE: "[信息]"},
         "warn_prefix": {Language.ENGLISH: "[WARN]", Language.CHINESE: "[警告]"},
@@ -98,6 +96,41 @@ class I18N:
         "ota_check_received": {Language.ENGLISH: "Received OTA check request: {}", Language.CHINESE: "收到 OTA 检查请求: {}"},
         "serving_firmware": {Language.ENGLISH: "Serving firmware: {}", Language.CHINESE: "正在分发固件: {}"},
         "firmware_not_found": {Language.ENGLISH: "Firmware file not found", Language.CHINESE: "固件文件未找到"},
+        "server_shutdown_error": {Language.ENGLISH: "Error during server shutdown: {}", Language.CHINESE: "关闭服务器时发生错误: {}"},
+        "server_stopped": {Language.ENGLISH: "Server stopped.", Language.CHINESE: "服务器已停止。"},
+        "image_request_received": {Language.ENGLISH: "Request for image.img received from {}", Language.CHINESE: "收到来自 {} 的 image.img 请求"},
+        "serve_progress_error": {Language.ENGLISH: "Error serving with progress: {}", Language.CHINESE: "分发文件进度显示错误: {}"},
+        "complete_prev_step": {Language.ENGLISH: "Please complete the previous step ({}) first.", Language.CHINESE: "请先完成上一步 ({})。"},
+        
+        # UI Messages
+        "window_title": {Language.ENGLISH: "PaperP - DictPen ADB Tool", Language.CHINESE: "PaperP - 词典笔 ADB 工具"},
+        "ui_init": {Language.ENGLISH: "PaperP UI Initialized. Ready to start.", Language.CHINESE: "PaperP UI 初始化完成，准备就绪。"},
+        "app_title": {Language.ENGLISH: "PaperP", Language.CHINESE: "PaperP"},
+        "local_ip_label": {Language.ENGLISH: "Local IP:", Language.CHINESE: "本机 IP:"},
+        "log_console_label": {Language.ENGLISH: "Log Console", Language.CHINESE: "日志控制台"},
+        "no_capture_result": {Language.ENGLISH: "No capture result found.", Language.CHINESE: "未找到抓包结果。"},
+        "starting_capture_ui": {Language.ENGLISH: "Starting Capture...", Language.CHINESE: "正在启动抓包..."},
+        "stopping_server": {Language.ENGLISH: "Stopping server...", Language.CHINESE: "正在停止服务器..."},
+        "server_stop_success": {Language.ENGLISH: "Server stopped successfully.", Language.CHINESE: "服务器已成功停止。"},
+        "step_error": {Language.ENGLISH: "Error in step {}: {}", Language.CHINESE: "步骤 {} 发生错误: {}"},
+        "lang_switch_log": {Language.ENGLISH: "Language switched to {}", Language.CHINESE: "语言切换为 {}"},
+        
+        # UI Steps
+        "step_capture": {Language.ENGLISH: "1. Capture Request", Language.CHINESE: "1. 抓取请求"},
+        "step_download_info": {Language.ENGLISH: "2. Get Update Info", Language.CHINESE: "2. 获取更新信息"},
+        "step_download_file": {Language.ENGLISH: "3. Download Firmware", Language.CHINESE: "3. 下载固件"},
+        "step_patch": {Language.ENGLISH: "4. Patch Firmware", Language.CHINESE: "4. 修改固件"},
+        "step_network": {Language.ENGLISH: "5. Host Redirect", Language.CHINESE: "5. Hosts 重定向"},
+        "step_server": {Language.ENGLISH: "6. Start Server", Language.CHINESE: "6. 启动服务器"},
+        
+        "language_switch_btn": {Language.ENGLISH: "中文 / EN", Language.CHINESE: "English / 中文"},
+        "lang_chinese": {Language.ENGLISH: "Chinese", Language.CHINESE: "中文"},
+        "lang_english": {Language.ENGLISH: "English", Language.CHINESE: "英文"},
+        
+        # Argparse
+        "ui_load_fail": {Language.ENGLISH: "Failed to load UI: {}", Language.CHINESE: "加载 UI 失败: {}"},
+        "ui_start_error": {Language.ENGLISH: "Error starting UI: {}", Language.CHINESE: "启动 UI 失败: {}"},
+        "fallback_cli": {Language.ENGLISH: "Falling back to CLI mode.", Language.CHINESE: "回退到命令行模式。"},
         "server_restart_hint": {Language.ENGLISH: "Server failed to start, attempting to restart...", Language.CHINESE: "服务器启动失败，正在尝试重启..."},
         
         # Shortcuts

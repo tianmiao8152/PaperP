@@ -101,10 +101,10 @@ class HttpServer:
                 if hasattr(self.server, 'server_close'):
                     self.server.server_close()
             except Exception as e:
-                IO.warn(f"Error during server shutdown: {e}")
+                IO.warn(t("server_shutdown_error").format(e))
             finally:
                 self.server = None
-                IO.info("Server stopped.")
+                IO.info(t("server_stopped"))
 
     @staticmethod
     def force_stop_port_80():
@@ -161,7 +161,7 @@ def serve_image():
     progress_callback = app.config.get('PROGRESS_CALLBACK')
     
     # Debug info
-    IO.info(f"Request for image.img received from {request.remote_addr}")
+    IO.info(t("image_request_received").format(request.remote_addr))
     
     if os.path.exists(image_path):
         IO.info(t("serving_firmware").format(image_path))
@@ -196,7 +196,7 @@ def serve_image():
                     conditional=True
                 )
             except Exception as e:
-                IO.error(f"Error serving with progress: {e}")
+                IO.error(t("serve_progress_error").format(e))
                 # Fallback to standard send_file
                 return send_file(image_path, conditional=True)
         else:

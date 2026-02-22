@@ -40,10 +40,10 @@ def main():
             main_ui(args)
             return
         except ImportError as e:
-            print(f"Failed to load UI: {e}")
-            print("Falling back to CLI mode.")
+            print(t("ui_load_fail").format(e))
+            print(t("fallback_cli"))
         except Exception as e:
-             print(f"Error starting UI: {e}")
+             print(t("ui_start_error").format(e))
              import traceback
              traceback.print_exc()
              return
@@ -64,5 +64,5 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         # Fallback input if t() fails or other issues
-        print("Press Enter to exit...")
+        print(t("press_enter_exit"))
         input()

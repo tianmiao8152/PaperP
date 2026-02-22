@@ -127,7 +127,7 @@ class Patcher:
         else:
             new_hash = hashlib.sha256(new_password.encode()).hexdigest()
             
-        IO.info(f"New Hash: {new_hash}")
+        IO.info(t("new_hash_log").format(new_hash))
         
         try:
             with open(filepath, 'r+b') as f:
@@ -137,7 +137,7 @@ class Patcher:
             IO.info(t("patch_success"))
             return True
         except Exception as e:
-            IO.error(f"Failed to patch file: {e}")
+            IO.error(t("patch_fail").format(e))
             return False
 
     @staticmethod

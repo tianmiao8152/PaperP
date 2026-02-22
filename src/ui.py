@@ -49,10 +49,10 @@ class GUIInputHandler:
         # Given "tkinter is not thread-safe", calling simpledialog from another thread might crash.
         # But since we are blocking the worker thread anyway waiting for input, we can use a variable.
         
-        return self._run_in_main(lambda: simpledialog.askstring("Input", msg, parent=self.root))
+        return self._run_in_main(lambda: simpledialog.askstring(t("dialog_input_title"), msg, parent=self.root))
 
     def confirm(self, msg):
-        return self._run_in_main(lambda: messagebox.askyesno("Confirm", msg, parent=self.root))
+        return self._run_in_main(lambda: messagebox.askyesno(t("dialog_confirm_title"), msg, parent=self.root))
 
     def _run_in_main(self, func):
         if threading.current_thread() is threading.main_thread():
@@ -219,7 +219,7 @@ class PaperUI:
     def __init__(self, root, app_context):
         self.root = root
         self.app = app_context
-        self.root.title("PaperP - DictPen ADB Tool")
+        self.root.title(t("window_title"))
         self.root.geometry("900x600")
         
         # Data
@@ -252,7 +252,7 @@ class PaperUI:
         self.root.after(100, self.process_log_queue)
         
         # Initial Log
-        IO.info("PaperP UI Initialized. Ready to start.")
+        IO.info(t("ui_init"))
 
     def setup_ui(self):
         # Main Layout
@@ -266,12 +266,14 @@ class PaperUI:
         # Header in Left Panel
         header_frame = tk.Frame(self.left_panel, bg="#f8f9fa", pady=10)
         header_frame.pack(fill="x")
-        tk.Label(header_frame, text="PaperP", font=("Segoe UI", 14, "bold"), bg="#f8f9fa").pack()
+        self.header_label = tk.Label(header_frame, text=t("app_title"), font=("Segoe UI", 14, "bold"), bg="#f8f9fa")
+        self.header_label.pack()
         
         # IP Configuration
         ip_frame = tk.Frame(self.left_panel, bg="#f8f9fa", pady=5, padx=10)
         ip_frame.pack(fill="x")
-        tk.Label(ip_frame, text="Local IP / 本机 IP:", bg="#f8f9fa", anchor="w").pack(fill="x")
+        self.ip_label = tk.Label(ip_frame, text=t("local_ip_label"), bg="#f8f9fa", anchor="w")
+        self.ip_label.pack(fill="x")
         self.ip_var = tk.StringVar(value=self.get_best_ip())
         self.ip_entry = tk.Entry(ip_frame, textvariable=self.ip_var)
         self.ip_entry.pack(fill="x")
@@ -303,10 +305,11 @@ class PaperUI:
         toolbar = tk.Frame(self.right_panel, bg="#e9ecef", height=40)
         toolbar.pack(fill="x")
         
-        self.lang_btn = tk.Button(toolbar, text="中文 / EN", command=self.toggle_language, bg="white", relief="flat")
+        self.lang_btn = tk.Button(toolbar, text=t("language_switch_btn"), command=self.toggle_language, bg="white", relief="flat")
         self.lang_btn.pack(side="right", padx=10, pady=5)
         
-        tk.Label(toolbar, text="Log Console", font=("Segoe UI", 10, "bold"), bg="#e9ecef").pack(side="left", padx=10)
+        self.log_console_label = tk.Label(toolbar, text=t("log_console_label"), font=("Segoe UI", 10, "bold"), bg="#e9ecef")
+        self.log_console_label.pack(side="left", padx=10)
         
         # Log Area
         self.log_area = scrolledtext.ScrolledText(self.right_panel, state="disabled", font=("Consolas", 10))
@@ -376,7 +379,7 @@ class PaperUI:
             if step.status == "RUNNING":
                 # Stop server logic
                 if hasattr(self, 'server_instance') and self.server_instance:
-                    IO.info("Stopping server...")
+                    IO.info(t("stopping_server"))
                     # Run stop in a thread to avoid blocking UI
                     def stop_server_thread():
                         try:
@@ -384,7 +387,7 @@ class PaperUI:
                             # Update UI in main thread
                             self.root.after(0, lambda: self._on_server_stopped(step))
                         except Exception as e:
-                            IO.error(f"Failed to stop server: {e}")
+                            IO.error(t("server_shutdown_error").format(e))
                     
                     threading.Thread(target=stop_server_thread).start()
                 else:
@@ -418,7 +421,7 @@ class PaperUI:
     def _on_server_stopped(self, step):
         self.server_instance = None
         step.set_status("PENDING")
-        IO.info("Server stopped successfully.")
+        IO.info(t("server_stop_success"))
         
     def run_step_wrapper(self, step):
         try:
@@ -426,7 +429,7 @@ class PaperUI:
             # Update status in main thread via after (or just set variable, thread safe enough for simple string assignment usually, but better use after)
             self.root.after(0, lambda: self.step_finished(step, success))
         except Exception as e:
-            IO.error(f"Error in step {step.id}: {e}")
+            IO.error(t("step_error").format(step.id, e))
             import traceback
             traceback.print_exc()
             self.root.after(0, lambda: self.step_finished(step, False))
@@ -469,8 +472,18 @@ class PaperUI:
             self.btn_restore_hosts.config(text=t("restore_hosts_btn"))
         if hasattr(self, 'btn_force_stop'):
             self.btn_force_stop.config(text=t("force_stop_service_btn"))
+            
+        # Update Main UI Labels
+        if hasattr(self, 'header_label'):
+             self.header_label.config(text=t("app_title"))
+        if hasattr(self, 'ip_label'):
+             self.ip_label.config(text=t("local_ip_label"))
+        if hasattr(self, 'log_console_label'):
+             self.log_console_label.config(text=t("log_console_label"))
+        if hasattr(self, 'lang_btn') and "language_switch_btn" in I18N.translations:
+             self.lang_btn.config(text=t("language_switch_btn"))
         
-        IO.info(f"Language switched to {'Chinese' if new_lang == I18N.Language.CHINESE else 'English'}")
+        IO.info(t("lang_switch_log").format(t("lang_chinese") if new_lang == I18N.Language.CHINESE else t("lang_english")))
 
     # --- Shortcuts ---
     def restore_hosts(self):
@@ -492,7 +505,7 @@ class PaperUI:
             self.app.interface = "192.168.137.1"
             self.ip_var.set("192.168.137.1")
             
-        IO.info("Starting Capture...")
+        IO.info(t("starting_capture_ui"))
         result = capture_ota_request(self.app.interface)
         if result and result.product_url:
             self.app.capture_result = result
@@ -504,7 +517,7 @@ class PaperUI:
 
     def run_download_info(self):
         if not hasattr(self.app, 'capture_result'):
-            IO.error("No capture result found.")
+            IO.error(t("no_capture_result"))
             return False
             
         self.app.update_data = get_update_data(self.app.capture_result.product_url, self.app.capture_result.request_body)
