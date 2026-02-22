@@ -1,8 +1,7 @@
-from flask import Flask, request, jsonify, send_file
-import threading
+from flask import Flask, jsonify, send_file
 import logging
 import os
-from .utils import IO, t
+from ..utils import IO, t
 
 app = Flask(__name__)
 
@@ -32,18 +31,37 @@ class HttpServer:
         IO.info(t("server_start").format(self.port))
         IO.info(t("server_stop_hint"))
         
-        try:
-            # Run in main thread, blocking
-            app.run(host='0.0.0.0', port=self.port, threaded=True)
-        except OSError as e:
-            if e.errno == 10013 or e.winerror == 10013: # Access denied (usually port in use)
-                IO.error(t("port_occupied").format(self.port))
-                IO.error(t("stop_other_servers"))
-                IO.error(t("check_netstat"))
-            else:
-                IO.error(t("server_start_fail").format(e))
-        except Exception as e:
-            IO.error(t("unexpected_error").format(e))
+        retry_count = 0
+        max_retries = 1
+        
+        while retry_count <= max_retries:
+            try:
+                # Run in main thread, blocking
+                app.run(host='0.0.0.0', port=self.port, threaded=True)
+                break
+            except Exception as e:
+                # Check for port occupied in generic Exception or OSError
+                is_port_error = False
+                if isinstance(e, OSError) and (e.errno in (10013, 10048) or getattr(e, 'winerror', 0) in (10013, 10048)):
+                    is_port_error = True
+                elif "address already in use" in str(e).lower() or "access denied" in str(e).lower():
+                    is_port_error = True
+
+                if is_port_error:
+                    IO.error(t("port_occupied").format(self.port))
+                    IO.error(t("stop_other_servers"))
+                    IO.error(t("check_netstat"))
+                else:
+                    IO.error(t("server_start_fail").format(e))
+                
+                if retry_count < max_retries:
+                    retry_count += 1
+                    IO.info(t("server_restart_hint"))
+                    continue
+
+                print(t("press_enter_exit"))
+                input()
+                raise e
 
 @app.route('/<path:subpath>', methods=['POST'])
 def handle_check_version(subpath):

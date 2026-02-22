@@ -92,10 +92,12 @@ class I18N:
         "stop_other_servers": {Language.ENGLISH: "Please stop any other web servers (IIS, Apache, Skype, etc.) running on port 80.", Language.CHINESE: "请停止运行在 80 端口的其他 Web 服务器 (IIS, Apache, Skype 等)。"},
         "check_netstat": {Language.ENGLISH: "You can try running 'netstat -ano | findstr :80' to find the process ID.", Language.CHINESE: "你可以尝试运行 'netstat -ano | findstr :80' 来查找进程 ID。"},
         "server_start_fail": {Language.ENGLISH: "Failed to start server: {}", Language.CHINESE: "启动服务器失败: {}"},
+        "retry_port": {Language.ENGLISH: "Press Enter to retry starting the server...", Language.CHINESE: "按回车键重试启动服务器..."},
         "unexpected_error": {Language.ENGLISH: "Unexpected error starting server: {}", Language.CHINESE: "启动服务器时发生意外错误: {}"},
         "ota_check_received": {Language.ENGLISH: "Received OTA check request: {}", Language.CHINESE: "收到 OTA 检查请求: {}"},
         "serving_firmware": {Language.ENGLISH: "Serving firmware: {}", Language.CHINESE: "正在分发固件: {}"},
         "firmware_not_found": {Language.ENGLISH: "Firmware file not found", Language.CHINESE: "固件文件未找到"},
+        "server_restart_hint": {Language.ENGLISH: "Server failed to start, attempting to restart...", Language.CHINESE: "服务器启动失败，正在尝试重启..."},
     }
 
     @staticmethod

@@ -1,9 +1,55 @@
 import hashlib
 import re
-import os
-from .utils import IO, t
+import json
+from ..utils import IO, t
 
 class Patcher:
+    @staticmethod
+    def update_version_data(update_data, image_path, interface_ip):
+        """
+        Recalculate MD5 and SHA1 hashes for the patched firmware image.
+        Updates the update_data dictionary with new hashes and local URL.
+        
+        Args:
+            update_data: The JSON dictionary containing version info.
+            image_path: Path to the patched firmware image.
+            interface_ip: IP address of the local interface for the URL.
+        """
+        IO.info(t("calculating_hash"))
+        
+        version_data = update_data['data']['version']
+        segment_md5_str = version_data['segmentMd5']
+        
+        # Handle segmentMd5 whether it's a string or object
+        if isinstance(segment_md5_str, str):
+            segment_md5 = json.loads(segment_md5_str)
+        else:
+            segment_md5 = segment_md5_str
+            
+        # Recalculate segment hashes
+        for item in segment_md5:
+            start = item['startpos']
+            end = item['endpos']
+            item['md5'] = Patcher.calc_segment_md5(image_path, start, end)
+            
+        # Update segmentMd5 in version_data
+        if isinstance(segment_md5_str, str):
+            version_data['segmentMd5'] = json.dumps(segment_md5)
+        else:
+            version_data['segmentMd5'] = segment_md5
+            
+        # Recalculate full file hashes
+        version_data['md5sum'] = Patcher.calc_md5(image_path)
+        version_data['sha'] = Patcher.calc_sha1(image_path)
+        
+        # Update URLs to point to local server
+        local_url = f"http://{interface_ip}/image.img"
+        version_data['deltaUrl'] = local_url
+        version_data['bakUrl'] = local_url
+        
+        IO.debug(json.dumps(update_data, indent=2))
+        return update_data
+
     @staticmethod
     def find_hash_patterns(filepath):
         IO.info(t("starting_password_search"))

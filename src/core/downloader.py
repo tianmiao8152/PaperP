@@ -1,8 +1,7 @@
 import requests
 import json
 import os
-import hashlib
-from .utils import IO, t
+from ..utils import IO, t
 
 def get_update_data(product_url, request_body):
     """

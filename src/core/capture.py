@@ -1,8 +1,8 @@
 from scapy.all import sniff, TCP, Raw
 import re
 import json
-import regex # Third-party library for recursive matching
-from .utils import IO, t
+import regex
+from ..utils import IO, t
 
 class CaptureResult:
     def __init__(self):

@@ -1,7 +1,7 @@
 import os
 import shutil
 import ctypes
-from .utils import IO, t
+from ..utils import IO, t
 
 class HostManager:
     HOSTS_PATH = r"C:\Windows\System32\drivers\etc\hosts"
