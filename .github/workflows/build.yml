@@ -1,4 +1,4 @@
-name: Build Windows Exe
+name: Build Windows EXE
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -31,7 +31,7 @@ jobs:
         python -m nuitka --standalone --onefile --enable-plugin=tk-inter --include-package=src --output-dir=dist --output-filename=PaperP.exe --windows-uac-admin --assume-yes-for-downloads --remove-output src/main.py
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PaperP-Windows
         path: dist/PaperP.exe
