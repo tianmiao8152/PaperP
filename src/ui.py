@@ -268,6 +268,26 @@ class PaperUI:
         header_frame.pack(fill="x")
         tk.Label(header_frame, text="PaperP", font=("Segoe UI", 14, "bold"), bg="#f8f9fa").pack()
         
+        # IP Configuration
+        ip_frame = tk.Frame(self.left_panel, bg="#f8f9fa", pady=5, padx=10)
+        ip_frame.pack(fill="x")
+        tk.Label(ip_frame, text="Local IP / 本机 IP:", bg="#f8f9fa", anchor="w").pack(fill="x")
+        self.ip_var = tk.StringVar(value=self.get_best_ip())
+        self.ip_entry = tk.Entry(ip_frame, textvariable=self.ip_var)
+        self.ip_entry.pack(fill="x")
+        
+        # Shortcuts Frame (Bottom Left)
+        self.shortcuts_frame = tk.Frame(self.left_panel, bg="#f8f9fa", pady=10)
+        self.shortcuts_frame.pack(side="bottom", fill="x", padx=10, pady=10)
+
+        # Restore Hosts Button
+        self.btn_restore_hosts = tk.Button(self.shortcuts_frame, text=t("restore_hosts_btn"), command=self.restore_hosts, bg="white", relief="groove")
+        self.btn_restore_hosts.pack(fill="x", pady=2)
+
+        # Force Stop Service Button
+        self.btn_force_stop = tk.Button(self.shortcuts_frame, text=t("force_stop_service_btn"), command=self.force_stop_service, bg="white", relief="groove")
+        self.btn_force_stop.pack(fill="x", pady=2)
+
         # Steps Container
         self.steps_frame = tk.Frame(self.left_panel, bg="#f8f9fa")
         self.steps_frame.pack(fill="both", expand=True, padx=10)
@@ -297,6 +317,29 @@ class PaperUI:
         self.log_area.tag_config("WARN", foreground="#856404", background="#fff3cd")
         self.log_area.tag_config("ERROR", foreground="#721c24", background="#f8d7da")
         self.log_area.tag_config("DEBUG", foreground="gray")
+
+    def get_best_ip(self):
+        try:
+            # Try to find 192.168.137.1 first (Windows Hotspot default)
+            import socket
+            hostname = socket.gethostname()
+            # gethostbyname_ex returns (hostname, aliases, ipaddrs)
+            ips = socket.gethostbyname_ex(hostname)[2]
+            
+            # Priority 1: Hotspot IP
+            for ip in ips:
+                if ip.startswith("192.168.137."):
+                    return ip
+            
+            # Priority 2: Connect to internet to find main interface
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except:
+            # Fallback
+            return "127.0.0.1"
 
     def define_steps(self):
         # Clear existing
@@ -331,28 +374,38 @@ class PaperUI:
         # Handle Server Step separately (Toggle logic)
         if step.name_key == "step_server":
             if step.status == "RUNNING":
-                # Stop server
+                # Stop server logic
                 if hasattr(self, 'server_instance') and self.server_instance:
-                    try:
-                        self.server_instance.stop()
-                        self.server_instance = None
-                        step.set_status("PENDING") 
-                        IO.info("Server stopped.")
-                    except Exception as e:
-                        IO.error(f"Failed to stop server: {e}")
+                    IO.info("Stopping server...")
+                    # Run stop in a thread to avoid blocking UI
+                    def stop_server_thread():
+                        try:
+                            self.server_instance.stop()
+                            # Update UI in main thread
+                            self.root.after(0, lambda: self._on_server_stopped(step))
+                        except Exception as e:
+                            IO.error(f"Failed to stop server: {e}")
+                    
+                    threading.Thread(target=stop_server_thread).start()
+                else:
+                    # If status says RUNNING but no instance, just reset
+                    step.set_status("PENDING")
+                    
                 return
             # Else proceed to start logic
 
         # Basic dependency check
-        # Allow step 4, 5, 6 (index 3, 4, 5) to run independently
-        if step.id > 1 and step.id < 4:
+        # Enforce strict order for all steps
+        if step.id > 1:
             prev_step = self.steps[step.id - 2]
             if prev_step.status != "COMPLETED":
+                # Special handling for step 5 (Network) and 6 (Server)
+                # If they are already running, we might want to stop them? 
+                # But here we are checking if we can START the current step.
+                
+                # Check if previous step is "KEEP_RUNNING" (like server?) No, server is the last one.
+                
                 IO.warn(t("complete_prev_step").format(t(prev_step.name_key)))
-                # But we allow user to force run if they want, or we can block it.
-                # Let's block it for safety unless user insists (not implemented here)
-                # For now, let's just warn but proceed if user really wants? 
-                # No, strict order is better for this tool.
                 return
 
         # Start step in a thread
@@ -362,6 +415,11 @@ class PaperUI:
         step.set_status("RUNNING")
         threading.Thread(target=self.run_step_wrapper, args=(step,)).start()
 
+    def _on_server_stopped(self, step):
+        self.server_instance = None
+        step.set_status("PENDING")
+        IO.info("Server stopped successfully.")
+        
     def run_step_wrapper(self, step):
         try:
             success = step.action()
@@ -405,12 +463,35 @@ class PaperUI:
         # Update UI texts
         for step in self.steps:
             step.update_text()
+            
+        # Update Shortcuts
+        if hasattr(self, 'btn_restore_hosts'):
+            self.btn_restore_hosts.config(text=t("restore_hosts_btn"))
+        if hasattr(self, 'btn_force_stop'):
+            self.btn_force_stop.config(text=t("force_stop_service_btn"))
         
         IO.info(f"Language switched to {'Chinese' if new_lang == I18N.Language.CHINESE else 'English'}")
+
+    # --- Shortcuts ---
+    def restore_hosts(self):
+        if self.gui_confirm(t("hosts_backup_restore") + "?"):
+            threading.Thread(target=HostManager.disable_redirect).start()
+
+    def force_stop_service(self):
+        if self.gui_confirm(t("force_stop_service_btn") + "?"):
+            threading.Thread(target=HttpServer.force_stop_port_80).start()
 
     # --- Step Actions ---
 
     def run_capture(self):
+        # Update interface from UI just in case
+        ip = self.ip_var.get().strip()
+        if ip and ip != "0.0.0.0":
+            self.app.interface = ip
+        else:
+            self.app.interface = "192.168.137.1"
+            self.ip_var.set("192.168.137.1")
+            
         IO.info("Starting Capture...")
         result = capture_ota_request(self.app.interface)
         if result and result.product_url:
@@ -460,30 +541,58 @@ class PaperUI:
             
         if not Patcher.replace_hash(self.app.image_path):
             return False
+        
+        # Ensure we use the latest IP from UI
+        ip = self.ip_var.get().strip()
+        if ip and ip != "0.0.0.0":
+            self.app.interface = ip
+        else:
+            self.app.interface = "192.168.137.1"
+            self.ip_var.set("192.168.137.1")
             
         # Re-calculate hashes
         Patcher.update_version_data(self.app.update_data, self.app.image_path, self.app.interface)
         return True
 
     def run_network(self):
-        return HostManager.enable_redirect(self.app.interface)
+        ip = self.ip_var.get().strip()
+        if not ip or ip == "0.0.0.0":
+            IO.error("Invalid IP address. Please check 'Local IP' field.")
+            return False
+            
+        self.app.interface = ip
+        return HostManager.enable_redirect(ip)
 
     def run_server(self):
         try:
-            # Check if port 80 is free before starting
-            # We can use a quick socket bind check
+            # Improved Port Check Logic
+            # 1. Try to bind to port 80. If successful, port is free.
+            # 2. If bind fails, port is occupied.
             import socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex(('0.0.0.0', 80))
-            if result == 0:
-                 # Port is open (meaning someone is listening)
-                 sock.close()
-                 IO.error(t("port_occupied").format(80))
-                 IO.error(t("stop_other_servers"))
-                 return False
-            sock.close()
-            
-            self.server_instance = HttpServer(port=80, image_path=os.path.abspath(self.app.image_path), update_data=self.app.update_data)
+            try:
+                test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # Set SO_REUSEADDR to avoid false positives if we just closed it
+                test_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                test_sock.bind(('0.0.0.0', 80))
+                test_sock.close()
+            except OSError as e:
+                IO.error(t("port_occupied").format(80))
+                IO.error(f"Bind check failed: {e}")
+                IO.error(t("stop_other_servers"))
+                return False
+
+            # Define progress callback
+            step = self.steps[5] # Step 6 is index 5
+            def progress_cb(current, total):
+                # Update progress in main thread
+                self.root.after(0, lambda: step.update_progress(current, total))
+
+            self.server_instance = HttpServer(
+                port=80, 
+                image_path=os.path.abspath(self.app.image_path), 
+                update_data=self.app.update_data,
+                progress_callback=progress_cb
+            )
             
             # Use a queue to receive error from the server thread
             error_queue = queue.Queue()
@@ -493,9 +602,8 @@ class PaperUI:
                 
             self.server_instance.start_threaded(error_callback=on_server_error)
             
+            # We need to pass the error_queue to the checker
             self.root.after(500, lambda: self.check_server_error(error_queue))
-            
-            IO.info(t("server_start"))
             
             return "KEEP_RUNNING"
         except Exception as e:

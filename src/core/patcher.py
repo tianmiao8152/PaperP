@@ -47,6 +47,10 @@ class Patcher:
         version_data['deltaUrl'] = local_url
         version_data['bakUrl'] = local_url
         
+        # Also update other potential URL fields
+        if 'fullUrl' in version_data:
+            version_data['fullUrl'] = local_url
+            
         IO.debug(json.dumps(update_data, indent=2))
         return update_data
 

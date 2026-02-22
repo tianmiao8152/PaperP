@@ -99,6 +99,14 @@ class I18N:
         "serving_firmware": {Language.ENGLISH: "Serving firmware: {}", Language.CHINESE: "正在分发固件: {}"},
         "firmware_not_found": {Language.ENGLISH: "Firmware file not found", Language.CHINESE: "固件文件未找到"},
         "server_restart_hint": {Language.ENGLISH: "Server failed to start, attempting to restart...", Language.CHINESE: "服务器启动失败，正在尝试重启..."},
+        
+        # Shortcuts
+        "restore_hosts_btn": {Language.ENGLISH: "Restore Hosts", Language.CHINESE: "还原 hosts"},
+        "force_stop_service_btn": {Language.ENGLISH: "Force Stop Service", Language.CHINESE: "强行停止服务"},
+        "no_process_on_port_80": {Language.ENGLISH: "No process found on port 80", Language.CHINESE: "80 端口未发现占用进程"},
+        "killing_process": {Language.ENGLISH: "Killing process {}...", Language.CHINESE: "正在结束进程 {}..."},
+        "port_80_cleared": {Language.ENGLISH: "Port 80 process cleared", Language.CHINESE: "80 端口进程已清理"},
+        "force_stop_fail": {Language.ENGLISH: "Failed to force stop service: {}", Language.CHINESE: "强制停止服务失败: {}"},
     }
 
     @staticmethod
