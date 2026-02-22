@@ -41,9 +41,35 @@ jobs:
           pip install zstandard
         }
         
+    - name: Setup UPX
+      if: matrix.arch == 'x86'
+      uses: crazy-max/ghaction-upx@v3
+      with:
+        install-only: true
+        
     - name: Build with Nuitka
+      shell: powershell
       run: |
-        python -m nuitka --standalone --onefile --include-package=src --include-package=scapy --output-dir=dist --output-filename=PaperP-${{ matrix.name_suffix }}.exe --windows-uac-admin --assume-yes-for-downloads --remove-output src/main.py
+        $params = @(
+          "--standalone",
+          "--onefile",
+          "--include-package=src",
+          "--include-package=scapy",
+          "--noinclude-pytest-mode=nofollow",
+          "--output-dir=dist",
+          "--output-filename=PaperP-${{ matrix.name_suffix }}.exe",
+          "--windows-uac-admin",
+          "--assume-yes-for-downloads",
+          "--remove-output"
+        )
+        
+        # Use UPX for x86 to reduce size without memory issues
+        # x64 uses zstandard payload compression (built-in) which is better/faster than UPX
+        if ("${{ matrix.arch }}" -eq "x86") {
+          $params += "--enable-plugin=upx"
+        }
+        
+        python -m nuitka $params src/main.py
         
     - name: Upload EXE File
       uses: actions/upload-artifact@v4
@@ -56,12 +82,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Zip Source Code
-      run: |
-        zip -r PaperP-Source.zip src requirements.txt README.md
-        
     - name: Upload Source Artifact
       uses: actions/upload-artifact@v4
       with:
         name: PaperP-Source
-        path: PaperP-Source.zip
+        path: |
+          src/
+          requirements.txt
+          README.md
