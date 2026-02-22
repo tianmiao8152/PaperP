@@ -44,9 +44,10 @@ def get_update_data(product_url, request_body):
         IO.error(t("get_update_fail").format(e))
         return None
 
-def download_file(url, filename):
+def download_file(url, filename, progress_callback=None):
     """
     Download file with progress bar.
+    progress_callback: function(current, total)
     """
     if os.path.exists(filename):
         IO.warn(t("file_exists").format(filename))
@@ -67,10 +68,14 @@ def download_file(url, filename):
                     f.write(chunk)
                     downloaded += len(chunk)
                     if total_length > 0:
-                        percentage = (downloaded / total_length) * 100
-                        print(f"\r{t('download_progress').format(percentage, downloaded, total_length)}", end="")
+                        if progress_callback:
+                            progress_callback(downloaded, total_length)
+                        else:
+                            percentage = (downloaded / total_length) * 100
+                            print(f"\r{t('download_progress').format(percentage, downloaded, total_length)}", end="")
         
-        print() # Newline
+        if not progress_callback:
+            print() # Newline
         IO.info(t("download_complete"))
         return True
     except Exception as e:

@@ -20,9 +20,34 @@ def main():
     parser.add_argument("--image", default="image.img", help="Firmware image filename")
     parser.add_argument("--lang", choices=['en', 'cn'], help="Language (en/cn)")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode with verbose output")
+    parser.add_argument("--cli", action="store_true", help="Run in CLI mode (default is GUI)")
     
     args = parser.parse_args()
     
+    # Check if we should run GUI
+    # If no arguments provided (except script name), default to GUI
+    # Or if --cli is not specified
+    # However, if user provided other args (like --interface), they might expect CLI behavior?
+    # User requirement: "Default open English UI interface"
+    # Let's say: if --cli is NOT set, try to open UI. 
+    # But we should pass args to UI? The UI currently hardcodes some defaults.
+    # Let's update UI to accept args if possible, or just ignore for now.
+    
+    if not args.cli:
+        try:
+            from .ui import main_ui
+            # We can pass args to main_ui if we update it
+            main_ui(args)
+            return
+        except ImportError as e:
+            print(f"Failed to load UI: {e}")
+            print("Falling back to CLI mode.")
+        except Exception as e:
+             print(f"Error starting UI: {e}")
+             import traceback
+             traceback.print_exc()
+             return
+
     app = PaperPApp(
         interface=args.interface,
         image_path=args.image,

@@ -1,3 +1,5 @@
+import threading
+from werkzeug.serving import make_server
 from flask import Flask, jsonify, send_file
 import logging
 import os
@@ -14,7 +16,8 @@ class HttpServer:
         self.port = port
         self.image_path = image_path
         self.update_data = update_data
-        self.server_thread = None
+        self.server = None
+        self.thread = None
 
     def run(self):
         # Configure logging based on debug mode
@@ -29,39 +32,45 @@ class HttpServer:
         app.config['IMAGE_PATH'] = self.image_path
 
         IO.info(t("server_start").format(self.port))
-        IO.info(t("server_stop_hint"))
         
-        retry_count = 0
-        max_retries = 1
-        
-        while retry_count <= max_retries:
+        try:
+            self.server = make_server('0.0.0.0', self.port, app, threaded=True)
+            self.server.serve_forever()
+        except Exception as e:
+            # Check for port occupied in generic Exception or OSError
+            is_port_error = False
+            if isinstance(e, OSError) and (e.errno in (10013, 10048) or getattr(e, 'winerror', 0) in (10013, 10048)):
+                is_port_error = True
+            elif "address already in use" in str(e).lower() or "access denied" in str(e).lower():
+                is_port_error = True
+
+            if is_port_error:
+                IO.error(t("port_occupied").format(self.port))
+                IO.error(t("stop_other_servers"))
+                IO.error(t("check_netstat"))
+            else:
+                IO.error(t("server_start_fail").format(e))
+            raise e
+
+    def start_threaded(self, error_callback=None):
+        """Start server in a separate thread."""
+        def run_wrapper():
             try:
-                # Run in main thread, blocking
-                app.run(host='0.0.0.0', port=self.port, threaded=True)
-                break
+                self.run()
             except Exception as e:
-                # Check for port occupied in generic Exception or OSError
-                is_port_error = False
-                if isinstance(e, OSError) and (e.errno in (10013, 10048) or getattr(e, 'winerror', 0) in (10013, 10048)):
-                    is_port_error = True
-                elif "address already in use" in str(e).lower() or "access denied" in str(e).lower():
-                    is_port_error = True
+                if error_callback:
+                    error_callback(e)
+                    
+        self.thread = threading.Thread(target=run_wrapper)
+        self.thread.daemon = True
+        self.thread.start()
 
-                if is_port_error:
-                    IO.error(t("port_occupied").format(self.port))
-                    IO.error(t("stop_other_servers"))
-                    IO.error(t("check_netstat"))
-                else:
-                    IO.error(t("server_start_fail").format(e))
-                
-                if retry_count < max_retries:
-                    retry_count += 1
-                    IO.info(t("server_restart_hint"))
-                    continue
-
-                print(t("press_enter_exit"))
-                input()
-                raise e
+    def stop(self):
+        """Stop the server."""
+        if self.server:
+            self.server.shutdown()
+            self.server = None
+            IO.info("Server stopped.")
 
 @app.route('/<path:subpath>', methods=['POST'])
 def handle_check_version(subpath):

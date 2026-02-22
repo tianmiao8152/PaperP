@@ -62,7 +62,8 @@ jobs:
           "--windows-uac-admin",
           "--assume-yes-for-downloads",
           "--remove-output",
-          "--enable-plugin=upx"
+          "--enable-plugin=upx",
+          "--enable-plugin=tk-inter"
         )
         
         python -m nuitka $params src/main.py

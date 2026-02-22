@@ -45,6 +45,7 @@ class I18N:
         
         # Download
         "downloading": {Language.ENGLISH: "Downloading firmware...", Language.CHINESE: "正在下载固件..."},
+        "downloading_url": {Language.ENGLISH: "Downloading URL: {}", Language.CHINESE: "正在下载 URL: {}"},
         "download_complete": {Language.ENGLISH: "Download completed", Language.CHINESE: "下载完成"},
         "firmware_url": {Language.ENGLISH: "Firmware URL: {}", Language.CHINESE: "固件 URL: {}"},
         "requesting_update": {Language.ENGLISH: "Requesting update info from: {}", Language.CHINESE: "正在请求更新信息: {}"},
