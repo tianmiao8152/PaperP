@@ -58,7 +58,7 @@ jobs:
           "--include-module=scapy.layers.all",
           "--noinclude-pytest-mode=nofollow",
           "--output-dir=dist",
-          "--output-filename=PaperP-${{ matrix.name_suffix }}.exe",
+          "--output-filename=PaperP-Windows-${{ matrix.name_suffix }}.exe",
           "--windows-uac-admin",
           "--assume-yes-for-downloads",
           "--remove-output",
@@ -71,7 +71,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: PaperP-Windows-${{ matrix.name_suffix }}
-        path: dist/PaperP-${{ matrix.name_suffix }}.exe
+        path: dist/PaperP-Windows-${{ matrix.name_suffix }}.exe
 
   package-source:
     runs-on: ubuntu-latest
