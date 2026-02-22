@@ -42,7 +42,6 @@ jobs:
         }
         
     - name: Setup UPX
-      if: matrix.arch == 'x86'
       uses: crazy-max/ghaction-upx@v3
       with:
         install-only: true
@@ -55,19 +54,16 @@ jobs:
           "--onefile",
           "--include-package=src",
           "--include-package=scapy",
+          "--include-module=scapy.layers.dot11",
+          "--include-module=scapy.layers.all",
           "--noinclude-pytest-mode=nofollow",
           "--output-dir=dist",
           "--output-filename=PaperP-${{ matrix.name_suffix }}.exe",
           "--windows-uac-admin",
           "--assume-yes-for-downloads",
-          "--remove-output"
+          "--remove-output",
+          "--enable-plugin=upx"
         )
-        
-        # Use UPX for x86 to reduce size without memory issues
-        # x64 uses zstandard payload compression (built-in) which is better/faster than UPX
-        if ("${{ matrix.arch }}" -eq "x86") {
-          $params += "--enable-plugin=upx"
-        }
         
         python -m nuitka $params src/main.py
         
