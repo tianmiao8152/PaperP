@@ -1,0 +1,64 @@
+name: 反馈异常 / Bug Report
+description: 反馈应用中的问题, 或预期外的行为
+labels: ["Bug"]
+title: "[Bug] "
+body:
+  - type: checkboxes
+    attributes:
+      label: 在开始之前 / Before starting
+      options:
+        - label: 我了解本 Repo 仅接受 PaperP 的问题反馈
+          required: true
+
+  - type: textarea
+    attributes:
+      label: 复现步骤 / Reproduce steps
+      placeholder: |
+        1. 首先, 我...
+        2. 然后, 出现了...
+        3. 最终...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 预期行为 / Expected behaviour
+      placeholder: |
+        1. 应用本来应该...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 实际行为 / Actual behaviour
+      placeholder: |
+        1. 事实上, 应用...
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: PaperP 版本 / PaperP version
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirms
+    attributes:
+      label: 提交前请确认 / Confirm before submit
+      options:
+        - label: 我已经在 [PaperP Issues](https://github.com/tianmiao8152/PaperP/issues) 中查询过相关关键词, 并确定此 Issue 是唯一的。
+          required: true
+
+  - type: textarea
+    attributes:
+      label: 日志 / Logs
+      description: 请在控制台输出中查看日志
+      render: bash
+    validations:
+      required: false
+
+  - type: textarea
+    id: extraDesc
+    attributes:
+      label: 其他信息 (可选) / Additional info (Optional)
