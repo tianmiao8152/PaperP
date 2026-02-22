@@ -5,7 +5,7 @@ from .utils import IO, t
 
 class HostManager:
     HOSTS_PATH = r"C:\Windows\System32\drivers\etc\hosts"
-    BACKUP_PATH = r"C:\Windows\System32\drivers\etc\hosts.bak"
+    BACKUP_PATH = r"C:\Windows\System32\drivers\etc\hosts.paper_bak"
     TARGET_DOMAIN = "iotapi.abupdate.com"
     REDIRECT_IP = "0.0.0.0"
     
@@ -14,6 +14,7 @@ class HostManager:
         try:
             # Backup hosts file
             if not os.path.exists(HostManager.BACKUP_PATH):
+                IO.info(f"{t('hosts_backup_create')}: {HostManager.BACKUP_PATH}")
                 shutil.copy2(HostManager.HOSTS_PATH, HostManager.BACKUP_PATH)
             
             content = ""
@@ -48,7 +49,7 @@ class HostManager:
             HostManager.flush_dns()
             return True
         except Exception as e:
-            IO.error(f"Failed to modify hosts file: {e}")
+            IO.error(t("hosts_modify_fail").format(e))
             return False
 
     @staticmethod
@@ -58,6 +59,7 @@ class HostManager:
                 return # Nothing to restore
                 
             # Restore from backup
+            IO.info(t('hosts_backup_restore'))
             shutil.copy2(HostManager.BACKUP_PATH, HostManager.HOSTS_PATH)
             os.remove(HostManager.BACKUP_PATH)
             
@@ -65,7 +67,7 @@ class HostManager:
             HostManager.flush_dns()
             return True
         except Exception as e:
-            IO.error(f"Failed to restore hosts file: {e}")
+            IO.error(t("hosts_restore_fail").format(e))
             return False
 
     @staticmethod
@@ -73,6 +75,6 @@ class HostManager:
         try:
             lib = ctypes.windll.dnsapi
             lib.DnsFlushResolverCache()
-            IO.debug("DNS Cache Flushed")
+            IO.debug(t("dns_flushed"))
         except:
-            IO.warn("Failed to flush DNS cache")
+            IO.warn(t("dns_flush_fail"))

@@ -23,7 +23,7 @@ def capture_ota_request(interface_ip="192.168.137.1"):
                 
                 # Check for OTA request pattern
                 if "POST" in payload:
-                    IO.debug(f"Captured POST request: {payload[:100]}...") # Log first 100 chars
+                    IO.debug(t("captured_post").format(payload[:100])) # Log first 100 chars
                 
                 if "POST /product/" in payload and "/ota/checkVersion" in payload:
                     IO.info(t("captured_request"))
@@ -55,11 +55,11 @@ def capture_ota_request(interface_ip="192.168.137.1"):
                                 result.product_url = product_url
                                 return True # Stop sniffing
                             else:
-                                IO.warn("No JSON object found in body")
+                                IO.warn(t("no_json_body"))
                         except json.JSONDecodeError:
-                            IO.warn("Failed to parse JSON body")
+                            IO.warn(t("json_parse_fail"))
                         except Exception as e:
-                            IO.warn(f"JSON extraction error: {e}")
+                            IO.warn(t("json_extract_error").format(e))
             except Exception as e:
                 pass
         return False

@@ -21,7 +21,7 @@ class HttpServer:
         # Configure logging based on debug mode
         if IO.DEBUG_MODE:
             logging.getLogger('werkzeug').setLevel(logging.INFO)
-            IO.debug("Flask debug logging enabled")
+            IO.debug(t("flask_debug_enabled"))
         else:
             logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
@@ -29,7 +29,7 @@ class HttpServer:
         app.config['UPDATE_DATA'] = self.update_data
         app.config['IMAGE_PATH'] = self.image_path
 
-        IO.info(t("server_start") + f" (Port {self.port})")
+        IO.info(t("server_start").format(self.port))
         IO.info(t("server_stop_hint"))
         
         try:
@@ -37,19 +37,19 @@ class HttpServer:
             app.run(host='0.0.0.0', port=self.port, threaded=True)
         except OSError as e:
             if e.errno == 10013 or e.winerror == 10013: # Access denied (usually port in use)
-                IO.error(f"Port {self.port} is already in use or permission denied.")
-                IO.error("Please stop any other web servers (IIS, Apache, Skype, etc.) running on port 80.")
-                IO.error("You can try running 'netstat -ano | findstr :80' to find the process ID.")
+                IO.error(t("port_occupied").format(self.port))
+                IO.error(t("stop_other_servers"))
+                IO.error(t("check_netstat"))
             else:
-                IO.error(f"Failed to start server: {e}")
+                IO.error(t("server_start_fail").format(e))
         except Exception as e:
-            IO.error(f"Unexpected error starting server: {e}")
+            IO.error(t("unexpected_error").format(e))
 
 @app.route('/<path:subpath>', methods=['POST'])
 def handle_check_version(subpath):
     # Match any path ending in /ota/checkVersion
     if "ota/checkVersion" in subpath:
-        IO.info(f"Received OTA check request: {subpath}")
+        IO.info(t("ota_check_received").format(subpath))
         update_data = app.config.get('UPDATE_DATA')
         if update_data:
             return jsonify(update_data)
@@ -61,9 +61,9 @@ def handle_check_version(subpath):
 def serve_image():
     image_path = app.config.get('IMAGE_PATH')
     if os.path.exists(image_path):
-        IO.info(f"Serving firmware: {image_path}")
+        IO.info(t("serving_firmware").format(image_path))
         # Send file with range support
         return send_file(image_path, conditional=True)
     else:
-        IO.error("Firmware file not found")
+        IO.error(t("firmware_not_found"))
         return "File not found", 404

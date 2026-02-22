@@ -25,7 +25,7 @@ class Patcher:
             # Capture group 1 is the hash.
             # Offset of hash is match.start(1)
             for match in re.finditer(rb'#([0-9a-fA-F]{64})  -', data):
-                IO.info(t("hash_found") + f" (SHA256) at offset {match.start(1)}")
+                IO.info(t("hash_found_sha256").format(match.start(1)))
                 patterns.append({'type': 'sha256', 'offset': match.start(1), 'length': 64})
                 
             # Pattern 2: MD5 (32 hex chars)
@@ -43,11 +43,11 @@ class Patcher:
             # Capture group 1 is the hash.
             # Offset of hash is match.start(1)
             for match in re.finditer(rb'= "([0-9a-fA-F]{32})  -"', data):
-                IO.info(t("hash_found") + f" (MD5) at offset {match.start(1)}")
+                IO.info(t("hash_found_md5").format(match.start(1)))
                 patterns.append({'type': 'md5', 'offset': match.start(1), 'length': 32})
                 
         except Exception as e:
-            IO.error(f"Error reading file: {e}")
+            IO.error(t("error_reading_file").format(e))
             
         return patterns
 
@@ -60,16 +60,13 @@ class Patcher:
             return False
             
         if len(patterns) > 1:
-            IO.error(t("multiple_password_patterns"))
-            # In C++ it dies here. We can just pick the first one or ask user.
-            # For safety, let's fail like C++
-            return False
+            IO.info(t("multiple_password_patterns"))
 
         pattern = patterns[0]
         
         new_password = ""
         while not new_password:
-            new_password = IO.input(t("input_new_password"))
+            new_password = IO.input(t("input_new_password")).strip()
             
         # Calculate new hash
         if pattern['type'] == 'md5':

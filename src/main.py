@@ -69,7 +69,7 @@ def main():
     # 1. Capture
     capture_result = capture_ota_request(args.interface)
     if not capture_result or not capture_result.product_url:
-        IO.error("Capture failed or aborted.")
+        IO.error(t("capture_failed"))
         return
 
     # 2. Download Info
@@ -81,7 +81,7 @@ def main():
         # Extract download URL
         # Structure based on C++: data -> version -> deltaUrl
         delta_url = update_data['data']['version']['deltaUrl']
-        IO.info(f"Firmware URL: {delta_url}")
+        IO.info(t("firmware_url").format(delta_url))
         
         # 3. Download File
         if not download_file(delta_url, args.image):
@@ -147,9 +147,9 @@ def main():
         app.run(host='0.0.0.0', port=80, threaded=True)
         
     except KeyError as e:
-        IO.error(f"JSON structure mismatch: {e}")
+        IO.error(t("json_structure_error").format(e))
     except Exception as e:
-        IO.error(f"An error occurred: {e}")
+        IO.error(t("unknown_error").format(e))
     finally:
         cleanup(None, None)
 
@@ -159,4 +159,4 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
         traceback.print_exc()
-        input("Press Enter to exit...")
+        input(t("press_enter_exit"))
