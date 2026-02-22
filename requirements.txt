@@ -1,0 +1,6 @@
+scapy>=2.5.0
+requests>=2.31.0
+flask>=3.0.0
+colorama>=0.4.6
+pyuac>=0.0.3
+regex>=2023.10.3
