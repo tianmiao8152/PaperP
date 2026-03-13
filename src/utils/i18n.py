@@ -1,8 +1,10 @@
 class Language:
+    """语言枚举类"""
     ENGLISH = 0
     CHINESE = 1
 
 class I18N:
+    """国际化类，用于处理多语言支持"""
     Language = Language
     current_language = Language.ENGLISH
     
@@ -144,13 +146,37 @@ class I18N:
 
     @staticmethod
     def t(key):
+        """
+        获取指定键的翻译
+        
+        参数:
+            key (str): 翻译键
+        
+        返回:
+            str: 翻译后的文本
+        """
         if key not in I18N.translations:
             return key
         return I18N.translations[key].get(I18N.current_language, key)
 
     @staticmethod
     def set_language(lang):
+        """
+        设置当前语言
+        
+        参数:
+            lang (int): 语言代码，使用Language枚举
+        """
         I18N.current_language = lang
 
 def t(key):
+    """
+    获取指定键的翻译（便捷函数）
+    
+    参数:
+        key (str): 翻译键
+    
+    返回:
+        str: 翻译后的文本
+    """
     return I18N.t(key)
