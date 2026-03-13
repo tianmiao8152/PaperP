@@ -12,7 +12,17 @@ from .core.host import HostManager
 from .core.server import HttpServer
 
 class PaperPApp:
+    """PaperP应用主类"""
     def __init__(self, interface="0.0.0.0", image_path="image.img", lang=None, debug=False):
+        """
+        初始化PaperPApp对象
+        
+        参数:
+            interface (str): 网络接口IP地址，默认为"0.0.0.0"
+            image_path (str): 固件文件路径，默认为"image.img"
+            lang (str): 语言，默认为None
+            debug (bool): 是否启用调试模式，默认为False
+        """
         self.interface = interface
         self.image_path = image_path
         self.lang = lang
@@ -21,13 +31,12 @@ class PaperPApp:
         
     def setup(self):
         """
-        Initialize the application environment.
-        - Set debug mode and logging.
-        - Check for administrative privileges.
-        - Initialize I18N settings.
-        - Register signal handlers for graceful shutdown.
+        初始化应用环境
+        - 设置调试模式和日志
+        - 检查管理员权限
+        - 初始化国际化设置
+        - 注册信号处理器以优雅退出
         """
-        # Set debug mode
         IO.DEBUG_MODE = self.debug
         
         if self.debug:
@@ -38,10 +47,8 @@ class PaperPApp:
             requests_log.setLevel(logging.DEBUG)
             requests_log.propagate = True
 
-        # Check Admin
         require_admin()
         
-        # Init I18N
         if self.lang:
             I18N.set_language(I18N.Language.ENGLISH if self.lang == 'en' else I18N.Language.CHINESE)
         else:
@@ -50,56 +57,54 @@ class PaperPApp:
         
         IO.info(t("app_starting"))
         
-        # Register signal handler
         signal.signal(signal.SIGINT, self.cleanup)
         signal.signal(signal.SIGTERM, self.cleanup)
 
     def cleanup(self, signum, frame):
         """
-        Clean up resources before exiting.
-        - Restore hosts file.
-        - Exit the application.
+        退出前清理资源
+        - 恢复hosts文件
+        - 退出应用
         
-        Args:
-            signum: The signal number (if called by signal handler).
-            frame: The current stack frame (if called by signal handler).
+        参数:
+            signum: 信号编号（如果由信号处理器调用）
+            frame: 当前栈帧（如果由信号处理器调用）
         """
         IO.info(t("app_terminating"))
         HostManager.disable_redirect()
         if signum is None:
-             # Exit normally
              pass
         sys.exit(0)
 
     def run(self):
         """
-        Main execution loop of the application.
-        1. Capture OTA request.
-        2. Download update information.
-        3. Download firmware file.
-        4. Patch firmware hash.
-        5. Recalculate segment hashes.
-        6. Modify hosts file for redirection.
-        7. Start local HTTP server.
+        应用主执行循环
+        1. 抓取OTA请求
+        2. 下载更新信息
+        3. 下载固件文件
+        4. 修改固件哈希
+        5. 重新计算段哈希
+        6. 修改hosts文件进行重定向
+        7. 启动本地HTTP服务器
         """
         has_error = False
         try:
             self.setup()
             
-            # 1. Capture
+            # 1. 抓取
             capture_result = capture_ota_request(self.interface)
             if not capture_result or not capture_result.product_url:
                 IO.error(t("capture_failed"))
                 has_error = True
                 return
 
-            # 2. Download Info
+            # 2. 下载信息
             self.update_data = get_update_data(capture_result.product_url, capture_result.request_body)
             if not self.update_data:
                 has_error = True
                 return
             
-            # Extract download URL
+            # 提取下载URL
             try:
                 delta_url = self.update_data['data']['version']['deltaUrl']
                 IO.info(t("firmware_url").format(delta_url))
@@ -108,25 +113,25 @@ class PaperPApp:
                 has_error = True
                 return
 
-            # 3. Download File
+            # 3. 下载文件
             if not download_file(delta_url, self.image_path):
                 has_error = True
                 return
 
-            # 4. Patch File
+            # 4. 修改文件
             if not Patcher.replace_hash(self.image_path):
                 has_error = True
                 return
 
-            # 5. Re-calculate Hashes
+            # 5. 重新计算哈希
             Patcher.update_version_data(self.update_data, self.image_path, self.interface)
 
-            # 6. Host Redirect
+            # 6. Host重定向
             if not HostManager.enable_redirect(self.interface):
                 has_error = True
                 return
 
-            # 7. Start Server
+            # 7. 启动服务器
             server = HttpServer(port=80, image_path=os.path.abspath(self.image_path), update_data=self.update_data)
             
             retry_count = 0
