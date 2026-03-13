@@ -5,18 +5,20 @@ from ..utils import IO, t
 
 def get_update_data(product_url, request_body):
     """
-    Replay the OTA check request to get update information.
-    """
-    # Construct full URL
-    # Assuming the domain is iotapi.abupdate.com based on C++ source
-    # In C++ it was hardcoded or extracted? Let's check capture result.
-    # The capture result only has path like /product/...
+    重新发送OTA检查请求以获取更新信息
     
+    参数:
+        product_url (str): 产品URL路径
+        request_body (dict): 请求体数据
+    
+    返回:
+        dict: 更新信息数据，失败返回None
+    """
     url = f"http://iotapi.abupdate.com{product_url}"
     
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 8.1.0; P780 Build/O11019)", # Mimic Android device
+        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 8.1.0; P780 Build/O11019)",
         "Host": "iotapi.abupdate.com",
         "Connection": "Keep-Alive",
         "Accept-Encoding": "gzip"
@@ -24,7 +26,6 @@ def get_update_data(product_url, request_body):
 
     IO.info(t("requesting_update").format(url))
     
-    # Force version to 99.99.90 to get full update package
     if 'version' in request_body:
         IO.info(t("force_version").format(request_body['version']))
         request_body['version'] = "99.99.90"
@@ -38,7 +39,7 @@ def get_update_data(product_url, request_body):
              response.raise_for_status()
         
         data = response.json()
-        IO.debug(t("update_info_received").format(json.dumps(data)[:200])) # Print first 200 chars
+        IO.debug(t("update_info_received").format(json.dumps(data)[:200]))
         return data
     except Exception as e:
         IO.error(t("get_update_fail").format(e))
@@ -46,8 +47,15 @@ def get_update_data(product_url, request_body):
 
 def download_file(url, filename, progress_callback=None):
     """
-    Download file with progress bar.
-    progress_callback: function(current, total)
+    下载文件并显示进度条
+    
+    参数:
+        url (str): 下载URL
+        filename (str): 保存文件名
+        progress_callback (function): 进度回调函数，接收(current, total)参数
+    
+    返回:
+        bool: 下载是否成功
     """
     if os.path.exists(filename):
         IO.warn(t("file_exists").format(filename))
@@ -75,7 +83,7 @@ def download_file(url, filename, progress_callback=None):
                             print(f"\r{t('download_progress').format(percentage, downloaded, total_length)}", end="")
         
         if not progress_callback:
-            print() # Newline
+            print()
         IO.info(t("download_complete"))
         return True
     except Exception as e:

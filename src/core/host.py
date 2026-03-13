@@ -4,6 +4,7 @@ import ctypes
 from ..utils import IO, t
 
 class HostManager:
+    """Hosts文件管理类，用于修改和恢复hosts文件"""
     HOSTS_PATH = r"C:\Windows\System32\drivers\etc\hosts"
     BACKUP_PATH = r"C:\Windows\System32\drivers\etc\hosts.paper_bak"
     TARGET_DOMAIN = "iotapi.abupdate.com"
@@ -11,8 +12,16 @@ class HostManager:
     
     @staticmethod
     def enable_redirect(ip="0.0.0.0"):
+        """
+        启用域名重定向，将TARGET_DOMAIN重定向到指定IP
+        
+        参数:
+            ip (str): 重定向目标IP，默认为"0.0.0.0"
+        
+        返回:
+            bool: 操作是否成功
+        """
         try:
-            # Backup hosts file
             if not os.path.exists(HostManager.BACKUP_PATH):
                 IO.info(f"{t('hosts_backup_create')}: {HostManager.BACKUP_PATH}")
                 shutil.copy2(HostManager.HOSTS_PATH, HostManager.BACKUP_PATH)
@@ -23,21 +32,19 @@ class HostManager:
                 with open(HostManager.HOSTS_PATH, 'r', encoding='utf-8') as f:
                     content = f.read()
             except UnicodeDecodeError:
-                encoding = 'gbk' # Fallback to GBK
+                encoding = 'gbk'
                 try:
                     with open(HostManager.HOSTS_PATH, 'r', encoding='gbk') as f:
                         content = f.read()
                 except UnicodeDecodeError:
-                    encoding = 'latin-1' # Last resort
+                    encoding = 'latin-1'
                     with open(HostManager.HOSTS_PATH, 'r', encoding='latin-1') as f:
                         content = f.read()
 
-            # Check if entry already exists
             entry = f"{ip} {HostManager.TARGET_DOMAIN}"
             if entry in content:
                 return True
                 
-            # Append entry
             prefix = ""
             if content and not content.endswith('\n'):
                 prefix = "\n"
@@ -54,11 +61,16 @@ class HostManager:
 
     @staticmethod
     def disable_redirect():
+        """
+        禁用域名重定向，恢复原始hosts文件
+        
+        返回:
+            bool: 操作是否成功
+        """
         try:
             if not os.path.exists(HostManager.BACKUP_PATH):
-                return # Nothing to restore
+                return
                 
-            # Restore from backup
             IO.info(t('hosts_backup_restore'))
             shutil.copy2(HostManager.BACKUP_PATH, HostManager.HOSTS_PATH)
             os.remove(HostManager.BACKUP_PATH)
@@ -72,6 +84,9 @@ class HostManager:
 
     @staticmethod
     def flush_dns():
+        """
+        刷新DNS缓存
+        """
         try:
             lib = ctypes.windll.dnsapi
             lib.DnsFlushResolverCache()
